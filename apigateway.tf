@@ -59,4 +59,10 @@ resource "aws_api_gateway_integration" "test_integration" {
   # Assuming the NLB listens on port 80 and forwards to the Ingress Controller
   uri                     = "http://${aws_lb.nlb.dns_name}/test" 
   integration_http_method = "GET"
+
+  # Explicitly depend on VPC Link to ensure it is destroyed AFTER this integration
+  depends_on = [
+    aws_api_gateway_vpc_link.main,
+    aws_api_gateway_method.test_get
+  ]
 }
