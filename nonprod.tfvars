@@ -1,0 +1,5 @@
+environment     = "nonprod"
+vpc_cidr        = "10.0.0.0/16"
+instance_type   = "t3.micro"
+cluster_version = "1.29"
+principal_arn   = "arn:aws:iam::344809605543:root"
