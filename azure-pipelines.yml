@@ -139,7 +139,7 @@ steps:
     scriptType: inline
     inlineScript: |
       set -euo pipefail
-      helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+      helm upgrade --install ingress-nginx ingress-nginx \
         --namespace ingress-nginx \
         --repo https://kubernetes.github.io/ingress-nginx \
         --wait
@@ -153,7 +153,7 @@ steps:
     scriptType: inline
     inlineScript: |
       set -euo pipefail
-      helm upgrade --install nexus sonatype/nexus-repository-manager \
+      helm upgrade --install nexus nexus-repository-manager \
         --namespace nexus \
         --repo https://sonatype.github.io/helm3-charts/ \
         --wait
@@ -167,7 +167,7 @@ steps:
     scriptType: inline
     inlineScript: |
       set -euo pipefail
-      helm upgrade --install sonarqube sonarqube/sonarqube \
+      helm upgrade --install sonarqube sonarqube \
         --namespace sonarqube \
         --repo https://SonarSource.github.io/helm-chart-sonarqube \
         --wait
@@ -181,7 +181,7 @@ steps:
     scriptType: inline
     inlineScript: |
       set -euo pipefail
-      helm upgrade --install argocd argo/argo-cd \
+      helm upgrade --install argocd argo-cd \
         --namespace argocd \
         --repo https://argoproj.github.io/argo-helm \
         --wait
