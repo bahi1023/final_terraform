@@ -142,7 +142,7 @@ steps:
       helm upgrade --install ingress-nginx ingress-nginx \
         --namespace ingress-nginx \
         --repo https://kubernetes.github.io/ingress-nginx \
-        --wait
+        --wait --timeout 15m
 
 - task: AWSShellScript@1
   displayName: Install Nexus
@@ -156,7 +156,7 @@ steps:
       helm upgrade --install nexus nexus-repository-manager \
         --namespace nexus \
         --repo https://sonatype.github.io/helm3-charts/ \
-        --wait
+        --wait --timeout 15m
 
 - task: AWSShellScript@1
   displayName: Install SonarQube
@@ -170,7 +170,7 @@ steps:
       helm upgrade --install sonarqube sonarqube \
         --namespace sonarqube \
         --repo https://SonarSource.github.io/helm-chart-sonarqube \
-        --wait
+        --wait --timeout 15m
 
 - task: AWSShellScript@1
   displayName: Install Argo CD
@@ -184,7 +184,7 @@ steps:
       helm upgrade --install argocd argo-cd \
         --namespace argocd \
         --repo https://argoproj.github.io/argo-helm \
-        --wait
+        --wait --timeout 15m
 
 # 8. Verification (Fixed: Uses AWSShellScript for credentials)
 - task: AWSShellScript@1
