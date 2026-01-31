@@ -1,6 +1,5 @@
 locals {
   instance_count = var.environment == "prod" ? 2 : 1
-  instance_type  = var.instance_type_map[var.environment]
   
   common_tags = {
     Environment = var.environment
@@ -99,7 +98,7 @@ resource "aws_eks_node_group" "main" {
   }
 
   ami_type       = "AL2023_x86_64_STANDARD"
-  instance_types = [local.instance_type]
+  instance_types = [var.instance_type]
 
   depends_on = [
     aws_iam_role_policy_attachment.eks_worker_node_policy,

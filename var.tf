@@ -10,29 +10,28 @@ variable "project_name" {
 
 variable "vpc_cidr" {
   description = "The CIDR block for the VPC"
-  default     = "10.0.0.0/16"
+  type        = string
 }
-
 
 variable "cluster_version" {
   description = "Kubernetes version for the EKS Cluster"
-  default     = "1.29"
-}
-variable "environment" {
-  description = "Deployment environment (prod or dev)"
-  default     = "dev"
+  type        = string
 }
 
-variable "instance_type_map" {
-  description = "Map of instance types by environment"
-  default = {
-    prod = "t3.medium"
-    dev  = "t3.micro"
-  }
+variable "instance_type" {
+  description = "Instance type for the EKS worker nodes"
+  type        = string
 }
-
 
 variable "principal_arn" {
   description = "IAM Principal ARN to grant cluster access"
-  default     = "arn:aws:iam::344809605543:root"
+  type        = string
 }
+
+variable "environment" {
+  description = "Deployment environment (prod or dev)"
+  type        = string
+  default = "prod"
+}
+
+
