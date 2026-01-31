@@ -113,13 +113,15 @@ steps:
       
       kubectl get nodes
 
-# 6. Create Namespaces
-- task: Bash@3
+# 6. Create Namespaces (Fixed: Uses AWSShellScript for credentials)
+- task: AWSShellScript@1
   displayName: Create namespaces
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    targetType: inline
-    script: |
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
       set -euo pipefail
       echo "Creating namespaces..."
       kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
@@ -127,66 +129,72 @@ steps:
       kubectl create namespace sonarqube --dry-run=client -o yaml | kubectl apply -f -
       kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
-# 7. Helm Installs
-- task: HelmDeploy@0
+# 7. Helm Installs (Fixed: Uses AWSShellScript for credentials)
+- task: AWSShellScript@1
   displayName: Install ingress-nginx
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    connectionType: None
-    command: upgrade
-    chartType: Name
-    chartName: ingress-nginx/ingress-nginx
-    releaseName: ingress-nginx
-    namespace: ingress-nginx
-    install: true
-    arguments: '--repo https://kubernetes.github.io/ingress-nginx --wait'
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
+      set -euo pipefail
+      helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+        --namespace ingress-nginx \
+        --repo https://kubernetes.github.io/ingress-nginx \
+        --wait
 
-- task: HelmDeploy@0
+- task: AWSShellScript@1
   displayName: Install Nexus
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    connectionType: None
-    command: upgrade
-    chartType: Name
-    chartName: sonatype/nexus-repository-manager
-    releaseName: nexus
-    namespace: nexus
-    install: true
-    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait'
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
+      set -euo pipefail
+      helm upgrade --install nexus sonatype/nexus-repository-manager \
+        --namespace nexus \
+        --repo https://sonatype.github.io/helm3-charts/ \
+        --wait
 
-- task: HelmDeploy@0
+- task: AWSShellScript@1
   displayName: Install SonarQube
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    connectionType: None
-    command: upgrade
-    chartType: Name
-    chartName: sonarqube/sonarqube
-    releaseName: sonarqube
-    namespace: sonarqube
-    install: true
-    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait'
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
+      set -euo pipefail
+      helm upgrade --install sonarqube sonarqube/sonarqube \
+        --namespace sonarqube \
+        --repo https://SonarSource.github.io/helm-chart-sonarqube \
+        --wait
 
-- task: HelmDeploy@0
+- task: AWSShellScript@1
   displayName: Install Argo CD
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    connectionType: None
-    command: upgrade
-    chartType: Name
-    chartName: argo/argo-cd
-    releaseName: argocd
-    namespace: argocd
-    install: true
-    arguments: '--repo https://argoproj.github.io/argo-helm --wait'
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
+      set -euo pipefail
+      helm upgrade --install argocd argo/argo-cd \
+        --namespace argocd \
+        --repo https://argoproj.github.io/argo-helm \
+        --wait
 
-# 8. Verification
-- task: Bash@3
+# 8. Verification (Fixed: Uses AWSShellScript for credentials)
+- task: AWSShellScript@1
   displayName: Verify platform services
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    targetType: inline
-    script: |
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
       set -euo pipefail
       echo "Retrieving pod status..."
       echo "--- Ingress Nginx ---"
