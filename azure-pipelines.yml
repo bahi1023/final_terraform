@@ -120,6 +120,7 @@ steps:
       echo "##vso[task.setvariable variable=AWS_SECRET_ACCESS_KEY;isSecret=true]$AWS_SECRET_ACCESS_KEY"
       echo "##vso[task.setvariable variable=AWS_SESSION_TOKEN;isSecret=true]$AWS_SESSION_TOKEN"
 # 7. Helm Installs (Using Plugins with 15m timeout)
+# 7. Helm Installs (Fixed Chart Names & Credentials Bridge)
 - task: HelmDeploy@0
   displayName: Install Nexus
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
@@ -127,16 +128,52 @@ steps:
     connectionType: None
     command: upgrade
     chartType: Name
-    chartName: sonatype/nexus-repository-manager
+    chartName: nexus-repository-manager  # CHANGED: Removed 'sonatype/'
     releaseName: nexus
     namespace: nexus
     install: true
-    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 15m --atomic --cleanup-on-fail'
+    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 15m --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
     AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
-    AWS_REGION: $(AWS_REGION)  
+    AWS_REGION: $(AWS_REGION)
+
+- task: HelmDeploy@0
+  displayName: Install SonarQube
+  condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
+  inputs:
+    connectionType: None
+    command: upgrade
+    chartType: Name
+    chartName: sonarqube  # CHANGED: Removed 'sonarqube/'
+    releaseName: sonarqube
+    namespace: sonarqube
+    install: true
+    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 15m --cleanup-on-fail'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
+    AWS_REGION: $(AWS_REGION)
+
+- task: HelmDeploy@0
+  displayName: Install Argo CD
+  condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
+  inputs:
+    connectionType: None
+    command: upgrade
+    chartType: Name
+    chartName: argo-cd  # CHANGED: Removed 'argo/'
+    releaseName: argocd
+    namespace: argocd
+    install: true
+    arguments: '--repo https://argoproj.github.io/argo-helm --wait --timeout 5m --cleanup-on-fail'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
+    AWS_REGION: $(AWS_REGION)
 
 - task: HelmDeploy@0
   displayName: Install SonarQube
