@@ -132,7 +132,7 @@ steps:
     releaseName: nexus
     namespace: nexus
     install: true
-    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 15m --cleanup-on-fail'
+    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 3m --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
@@ -150,7 +150,7 @@ steps:
     releaseName: sonarqube
     namespace: sonarqube
     install: true
-    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 15m --cleanup-on-fail'
+    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 3m --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
@@ -186,7 +186,7 @@ steps:
     releaseName: sonarqube
     namespace: sonarqube
     install: true
-    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 15m --atomic --cleanup-on-fail'
+    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 3m --atomic --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
@@ -204,7 +204,7 @@ steps:
     releaseName: argocd
     namespace: argocd
     install: true
-    arguments: '--repo https://argoproj.github.io/argo-helm --wait --timeout 15m --atomic --cleanup-on-fail'
+    arguments: '--repo https://argoproj.github.io/argo-helm --wait --timeout 3m --atomic --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
