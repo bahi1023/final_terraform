@@ -14,10 +14,6 @@ parameters:
     default: false
 
 variables:
-  # 'terraform' if your code is in a generic 'terraform' folder, 
-  # OR '.' if it is in the root of the repo. 
-  # Based on your previous commands, it seems your code is deeper or in root. 
-  # I'll set it to '.' assuming this pipeline file sits next to main.tf
   TF_DIR: '.' 
   TF_VAR_FILE: '${{ parameters.env }}.tfvars'
   AWS_SERVICE_CONNECTION: bahi-aws  
@@ -79,7 +75,6 @@ steps:
       cd "$(TF_DIR)"
       
       echo "Applying tfplan..."
-      # NOTE: When applying a plan file, do NOT pass -var-file again. 
       terraform apply -auto-approve tfplan
 
 # 4. Install Tools (Kubectl, Helm)
@@ -113,7 +108,7 @@ steps:
       
       kubectl get nodes
 
-# 6. Create Namespaces (Fixed: Uses AWSShellScript for credentials)
+# 6. Create Namespaces
 - task: AWSShellScript@1
   displayName: Create namespaces
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
@@ -129,64 +124,47 @@ steps:
       kubectl create namespace sonarqube --dry-run=client -o yaml | kubectl apply -f -
       kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
-# 7. Helm Installs (Fixed: Uses AWSShellScript for credentials)
-- task: AWSShellScript@1
-  displayName: Install ingress-nginx
-  condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
-  inputs:
-    awsCredentials: $(AWS_SERVICE_CONNECTION)
-    regionName: $(AWS_REGION)
-    scriptType: inline
-    inlineScript: |
-      set -euo pipefail
-      helm upgrade --install ingress-nginx ingress-nginx \
-        --namespace ingress-nginx \
-        --repo https://kubernetes.github.io/ingress-nginx \
-        --wait --timeout 15m --atomic --cleanup-on-fail
-
-- task: AWSShellScript@1
+# 7. Helm Installs (Using Plugins with 15m timeout)
+- task: HelmDeploy@0
   displayName: Install Nexus
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    awsCredentials: $(AWS_SERVICE_CONNECTION)
-    regionName: $(AWS_REGION)
-    scriptType: inline
-    inlineScript: |
-      set -euo pipefail
-      helm upgrade --install nexus nexus-repository-manager \
-        --namespace nexus \
-        --repo https://sonatype.github.io/helm3-charts/ \
-        --wait --timeout 15m --atomic --cleanup-on-fail
+    connectionType: None
+    command: upgrade
+    chartType: Name
+    chartName: sonatype/nexus-repository-manager
+    releaseName: nexus
+    namespace: nexus
+    install: true
+    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 15m --atomic --cleanup-on-fail'
 
-- task: AWSShellScript@1
+- task: HelmDeploy@0
   displayName: Install SonarQube
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    awsCredentials: $(AWS_SERVICE_CONNECTION)
-    regionName: $(AWS_REGION)
-    scriptType: inline
-    inlineScript: |
-      set -euo pipefail
-      helm upgrade --install sonarqube sonarqube \
-        --namespace sonarqube \
-        --repo https://SonarSource.github.io/helm-chart-sonarqube \
-        --wait --timeout 15m --atomic --cleanup-on-fail
+    connectionType: None
+    command: upgrade
+    chartType: Name
+    chartName: sonarqube/sonarqube
+    releaseName: sonarqube
+    namespace: sonarqube
+    install: true
+    arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 15m --atomic --cleanup-on-fail'
 
-- task: AWSShellScript@1
+- task: HelmDeploy@0
   displayName: Install Argo CD
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
-    awsCredentials: $(AWS_SERVICE_CONNECTION)
-    regionName: $(AWS_REGION)
-    scriptType: inline
-    inlineScript: |
-      set -euo pipefail
-      helm upgrade --install argocd argo-cd \
-        --namespace argocd \
-        --repo https://argoproj.github.io/argo-helm \
-        --wait --timeout 15m --atomic --cleanup-on-fail
+    connectionType: None
+    command: upgrade
+    chartType: Name
+    chartName: argo-cd
+    releaseName: argocd
+    namespace: argocd
+    install: true
+    arguments: '--repo https://argoproj.github.io/argo-helm --wait --timeout 15m --atomic --cleanup-on-fail'
 
-# 8. Verification (Fixed: Uses AWSShellScript for credentials)
+# 8. Verification
 - task: AWSShellScript@1
   displayName: Verify platform services
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
