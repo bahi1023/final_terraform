@@ -121,6 +121,25 @@ steps:
       echo "##vso[task.setvariable variable=AWS_SESSION_TOKEN;isSecret=true]$AWS_SESSION_TOKEN"
 # 7. Helm Installs (Using Plugins with 15m timeout)
 # 7. Helm Installs (Fixed Chart Names & Credentials Bridge)
+- task: AWSShellScript@1
+  displayName: Cleanup Stuck Nexus Release
+  condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
+  inputs:
+    awsCredentials: $(AWS_SERVICE_CONNECTION)
+    regionName: $(AWS_REGION)
+    scriptType: inline
+    inlineScript: |
+      set -euo pipefail
+      echo "Checking/Unlocking Nexus release..."
+      if helm status nexus -n nexus >/dev/null 2>&1; then
+        STATUS=$(helm status nexus -n nexus -o json | jq -r .info.status)
+        echo "Current status: $STATUS"
+        if [[ "$STATUS" == "pending-install" || "$STATUS" == "pending-upgrade" || "$STATUS" == "pending-rollback" ]]; then
+          echo "Release stuck. Rolling back..."
+          helm rollback nexus -n nexus || helm uninstall nexus -n nexus
+        fi
+      fi
+
 - task: HelmDeploy@0
   displayName: Install Nexus
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
@@ -132,7 +151,7 @@ steps:
     releaseName: nexus
     namespace: nexus
     install: true
-    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 3m --cleanup-on-fail'
+    arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 3m --atomic --cleanup-on-fail'
   env:
     AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
     AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
