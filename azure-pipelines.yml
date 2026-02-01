@@ -107,23 +107,18 @@ steps:
       aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$(AWS_REGION)"
       
       kubectl get nodes
-
-# 6. Create Namespaces
 - task: AWSShellScript@1
-  displayName: Create namespaces
+  displayName: 'Export AWS Credentials'
   condition: and(succeeded(), ne('${{ parameters.destroy }}','True'))
   inputs:
     awsCredentials: $(AWS_SERVICE_CONNECTION)
     regionName: $(AWS_REGION)
     scriptType: inline
     inlineScript: |
-      set -euo pipefail
-      echo "Creating namespaces..."
-      kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
-      kubectl create namespace nexus --dry-run=client -o yaml | kubectl apply -f -
-      kubectl create namespace sonarqube --dry-run=client -o yaml | kubectl apply -f -
-      kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
-
+      # Capture credentials from the Service Connection
+      echo "##vso[task.setvariable variable=AWS_ACCESS_KEY_ID;isSecret=true]$AWS_ACCESS_KEY_ID"
+      echo "##vso[task.setvariable variable=AWS_SECRET_ACCESS_KEY;isSecret=true]$AWS_SECRET_ACCESS_KEY"
+      echo "##vso[task.setvariable variable=AWS_SESSION_TOKEN;isSecret=true]$AWS_SESSION_TOKEN"
 # 7. Helm Installs (Using Plugins with 15m timeout)
 - task: HelmDeploy@0
   displayName: Install Nexus
@@ -137,6 +132,11 @@ steps:
     namespace: nexus
     install: true
     arguments: '--repo https://sonatype.github.io/helm3-charts/ --wait --timeout 15m --atomic --cleanup-on-fail'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
+    AWS_REGION: $(AWS_REGION)  
 
 - task: HelmDeploy@0
   displayName: Install SonarQube
@@ -150,6 +150,11 @@ steps:
     namespace: sonarqube
     install: true
     arguments: '--repo https://SonarSource.github.io/helm-chart-sonarqube --wait --timeout 15m --atomic --cleanup-on-fail'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
+    AWS_REGION: $(AWS_REGION)  
 
 - task: HelmDeploy@0
   displayName: Install Argo CD
@@ -163,6 +168,11 @@ steps:
     namespace: argocd
     install: true
     arguments: '--repo https://argoproj.github.io/argo-helm --wait --timeout 15m --atomic --cleanup-on-fail'
+  env:
+    AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+    AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+    AWS_SESSION_TOKEN: $(AWS_SESSION_TOKEN)
+    AWS_REGION: $(AWS_REGION)  
 
 # 8. Verification
 - task: AWSShellScript@1
